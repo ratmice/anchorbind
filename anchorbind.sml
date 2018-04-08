@@ -26,18 +26,21 @@ structure AnchorBind = struct
   fun addBindings([]) 		= ()
     | addBindings(path::paths)	= 
 	let val anchor = (Path.file path)
-	    val () = print ("Anchor: " ^ anchor ^ " bound to: " ^ path ^ "\n")
+	    val () = Tools.vsay ["path: ", path, " anchored to: ", anchor, "\n"]
 	 in (#set (CM.Anchor.anchor anchor)) (SOME path) end
 
 
-  (* fun binddirRule { spec, context, native2pathmaker, defaultClassOf, sysinfo } = { smlfiles = [], cmfiles = [], sources = [] } *)
-  fun rule { spec as { name, mkpath, opts, ...} : Tools.spec, context, native2pathmaker, defaultClassOf, sysinfo }
+  fun rule { spec as { mkpath, ...} : Tools.spec, context,
+	     native2pathmaker=_, defaultClassOf=_, sysinfo=_}
     = let
           val pre_d = mkpath ()
           val spec_d = Tools.nativePreSpec pre_d
-          val () = print ("scanning: " ^ spec_d ^ "\n")
-	  val () = addBindings(go ([spec_d],[]));
-       in ({ smlfiles = [], cmfiles = [], sources = [] }, [])
+          val () = Tools.vsay ["scanning: ", spec_d, "\n"]
+	  fun foo () =
+	    let val () = addBindings(go ([spec_d],[]));
+             in ({ smlfiles = [], cmfiles = [], sources = [] }, [])
+	    end
+       in context foo
       end
   
   val _ = Tools.registerClass(AnchDirToolClassify.class, rule);
